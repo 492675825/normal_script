@@ -67,8 +67,10 @@ class download_fun:
             SortedChecksumSHA256 = html.xpath('//input[@name="SortedChecksumSHA256"]/@value')[0]
             UserSeq = html.xpath('//input[@name="UserSeq"]/@value')[0]
             UserHashSeq = html.xpath('//input[@name="UserHashSeq"]/@value')[0]
-            self.download_url_md5 = f'https://www.dnc.gov.hk/download/{ListFileName}'
+            self.download_url_md5 = f'https://www.dnc.gov.hk/download/{ChecksumFileNameMD5}'
+            self.download_url_zip = f'https://www.dnc.gov.hk/download/{ListFileName}'
             print("md5_url:", self.download_url_md5)
+            print("zip_url:", self.download_url_zip)
             self.form_data_md5 = {
                 "RegisterType": "S"
                 , "CheckSum": f"{md5_code}"
@@ -92,6 +94,29 @@ class download_fun:
                 , "UserSeq": f"{UserSeq}"
                 , "UserHashSeq": f"{UserHashSeq}"
             }
+            self.form_data_zip = {
+                "RegisterType": 'S'
+                , 'CheckSum': f'{md5_code}'
+                , 'CheckSumSHA256': f'{SHA256_code}'
+                , 'Download': 'Download List'
+                , 'DownloadType': 'Download'
+                , 'ListFileName': f'{ListFileName}'
+                , 'ChecksumFileNameMD5': f'{ChecksumFileNameMD5}'
+                , 'ChecksumFileNameSHA256': f'{ChecksumFileNameSHA256}'
+                , 'SubFolder': f'{SubFolder}'
+                , 'ListFileDownloadName': f'{ListFileDownloadName}'
+                , 'ChecksumDownloadNameMD5': f'{ChecksumDownloadNameMD5}'
+                , 'ChecksumDownloadNameSHA256': f'{ChecksumDownloadNameSHA256}'
+                , 'SourceFileName': f'{SourceFileName}'
+                , 'SourceSize': f'{SourceSize}'
+                , 'SourceChecksumMD5': f'{SourceChecksumMD5}'
+                , 'SourceChecksumSHA256': f'{SourceChecksumSHA256}'
+                , 'SourceFileDate': f'{SourceFileDate}'
+                , 'SortedChecksumMD5': f'{SortedChecksumMD5}'
+                , 'SortedChecksumSHA256': f'{SortedChecksumSHA256}'
+                , 'UserSeq': f'{UserSeq}'
+                , 'UserHashSeq': f"{UserHashSeq}"
+            }
             print("2-Download MD5 File..")
             print("form_data_md5:", self.form_data_md5)
             time.sleep(5)
@@ -101,6 +126,19 @@ class download_fun:
                                         cookies=cookie)
             with open(F"{ChecksumFileNameMD5}", 'wb') as md5_f:
                 md5_f.write(md5_file_res.content)
+            print("3-Download ZIP File...")
+            print("form_data_zip:", self.form_data_zip)
+            time.sleep(5)
+            zip_file_res = session.post(url=self.download_url_zip,
+                                        data=self.form_data_zip,
+                                        headers=self.header,
+                                        stream=True,
+                                        cookies=cookie)
+            with open(f'{ListFileName}', 'wb') as zip_f:
+                for chunk in zip_file_res.iter_content(chunk_size=128):
+                    zip_f.write(chunk)
+            session.close()
+
             print("Running Complete..")
         except Exception as e:
             print("Login failed..")
